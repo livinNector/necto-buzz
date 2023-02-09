@@ -1,0 +1,40 @@
+{% extends "layout.html.jinja2" %}
+
+{% block includes %}
+<script src="/static/js/teams.js"></script>
+{% endblock includes %}
+
+{% block content %}
+<div class="container">
+    <h2 class="border-bottom border-5 border-primary  pb-2">🏆 {{team_name}}</h2>
+
+    <form id="answerForm" action="/answer" method="POST" class="container  g-1 needs-validation" novalidate>
+        <div class="row py-1 justify-content-around">
+            <div class="col-md-6 col-lg-4">
+                <div id="question" style="font-size:x-large;text-align:center"></div>
+            </div>
+        </div>
+        <div class="row py-1 justify-content-around">
+            <div class="col-md-6 col-lg-4">
+                <input type="number" class="form-control" name="answer" id="answer" aria-describedby="answerInput"
+                    placeholder="Answer Here" autocomplete="off" disabled="true" required>
+
+                <div class="invalid-feedback">Wrong Answer 😲</div>
+                <div class="valid-feedback">Success 🥳</div>
+            </div>
+        </div>
+        <input type="hidden" name="teamId" value="{{team_id}}">
+        <div class="row py-1 justify-content-around">
+            <div class="col-md-6 col-lg-4 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+    
+    <form action="/logout" method="POST">
+        <button name="teamId" type="submit" class="btn btn-primary" value="{{team_id}}" role="button">Log Out</button>
+    </form>
+</div>
+
+
+{% endblock content %}

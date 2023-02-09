@@ -1,0 +1,26 @@
+{%extends "layout.html.jinja2"%}
+
+{% block content %}
+<div class="container">
+  <h1>Welcome to Necto Buzz</h1>
+
+  <div class="mb-3 row justify-content-between">
+    <div class="col-md-3">
+      <h2>Join A Quiz</h2>
+      <form action="/login" method="POST" class="needs-validation" novalidate>
+        <label for="teamName" class="form-label">Team Name</label>
+        <input type="text" class="form-control" name="teamName" id="teamName" aria-describedby="teamNameHelp"
+          placeholder="Your Team" required>
+        <div class="invalid-feedback">Team Name is Required</div>
+        <small id="teamNameHelp" class="form-text text-muted">Eg. Akatsuki</small>
+
+        <button type="submit" class="btn btn-primary my-3 d-block">Join Quiz ✌️</button>
+      </form>
+
+    </div>
+    <div class="col-md-3">
+      <img src="/static/necto_buzz_logo.svg" class="img-fluid rounded-top" alt="Necto Buzz Logo">
+    </div>
+  </div>
+</div>
+{% endblock content %}

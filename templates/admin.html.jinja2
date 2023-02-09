@@ -1,0 +1,161 @@
+{% extends "layout.html.jinja2" %}
+
+{% block content %}
+<div class="container">
+    <h1>Admin Dashboard</h1>
+    <h2>🏆 Teams</h2>
+    <form id="teamListForm">
+        <div class="table-responsive">
+            <table class="table table-primary table-dark">
+                <thead>
+                    <tr>
+                        <th scope="col">Team No.</th>
+                        <th scope="col">Team Name</th>
+                        <th scope="col">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="teamlist">
+
+                </tbody>
+            </table>
+        </div>
+
+    </form>
+    <div class="row g-1">
+        <div class="col-auto"><button type="button" class="btn btn-primary" onclick="updateTeams()">
+                Update Teams</button></div>
+        <div class="col-auto"><button type="button" class="btn btn-primary" onclick="removeTeams()">
+                Remove Teams</button></div>
+        <div class="col-auto"><button type="button" class="btn btn-primary" onclick="selectAll()">
+                Select All</button></div>
+        <div class="col-auto"><button type="button" class="btn btn-primary" onclick="selectAll(false)">
+                Unselect All</button></div>
+    </div>
+
+    <h2 class="pt-2">🔴 Buzzers</h2>
+    <form action="#" id="answerListForm">
+        <ol id="answerList">
+
+        </ol>
+        <div class="row g-1 mb-3">
+            <div class="col-sm-3">
+                <input type="number" class="form-control" name="score" id="score" aria-describedby="score"
+                    placeholder="Score">
+            </div>
+        </div>
+        <input type="text" name="key" value="{{key}}" hidden>
+        <div class="row g-1">
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary" onclick="giveScore()">Give Score</button>
+            </div>
+            <div class="col-auto">
+                <button id="beginButton" type="button" class="btn btn-primary" onclick="publishQuestion()">Begin
+                    🏁</button>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    var teamList = document.getElementById("teamlist")
+    var teamListForm = document.getElementById("teamListForm")
+    var winnnerSource = new EventSource("/admin_winner")
+    var answerList = document.getElementById("answerList")
+    var answerListForm = document.getElementById("answerListForm")
+    var beginButton = document.getElementById("beginButton")
+    winnnerSource.addEventListener("winner",
+        function (event) {
+            team = JSON.parse(event.data)
+            console.log(team)
+            listItem = document.createElement("li")
+
+            listItem.innerHTML = `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="answeredTeam" id="answerList_${team.id}" value="${team.id}">
+                    <label class="form-check-label" for="answerList_${team.id}">
+                    ${team.name}
+                    </label>
+                </div>
+            `
+            answerList.appendChild(listItem)
+        }
+    )
+    function updateTeams() {
+        fetch("/teams")
+            .then((res) => res.json())
+            .then((teamData) => {
+                var rowString = ""
+                i = 1
+                for (team of teamData) {
+                    rowString = rowString.concat(`
+                        <tr class="">
+                            <td scope="row">
+                            <input id="tableForm${team.id}" class="form-check-input me-1" type="checkbox" name ="selectedTeams[]" value="${team.id}"> 
+                            <span>${i} </span>
+                            </td>
+                            <td>
+                            <label for="tableForm${team.id}" >
+                            ${team.name}
+                            <label>
+                            </td>
+                            <td>${team.score}</td>
+                        </tr>
+                `)
+                    i += 1
+                }
+                teamList.innerHTML = rowString
+            })
+    }
+    function getSelectedTeams() {
+        seletedTeams = teamListForm["selectedTeams[]"]
+        if (!seletedTeams.forEach) {
+            seletedTeams = [seletedTeams]
+        }
+        return Array.from(seletedTeams).filter((x) => x.checked).map((x) => x.value)
+
+    }
+    function selectAll(select = true) {
+        seletedTeams = teamListForm["selectedTeams[]"]
+        if (!seletedTeams.forEach) {
+            seletedTeams = [seletedTeams]
+        }
+        for (element of seletedTeams) {
+            element.checked = select
+        }
+    }
+    function removeTeams() {
+
+        query_params = getSelectedTeams().map(x => `teams[]=${x}`).join("&")
+        console.log(query_params)
+        fetch(`/remove_teams?${query_params}`)
+        updateTeams()
+    }
+
+    function publishQuestion() {
+        fetch("/publish_question", { "method": "POST" })
+        answerList.innerHTML = ""
+        beginButton.innerHTML = "Reset"
+        beginButton.onclick = resetQuestion
+    }
+    function resetQuestion() {
+        fetch("/publish_question?reset=true", { "method": "POST" })
+        answerList.innerHTML = ""
+        beginButton.innerHTML = "Begin 🏁"
+        beginButton.onclick = publishQuestion
+
+    }
+
+    function giveScore() {
+        score = answerListForm["score"].value
+        teamId = answerListForm["answeredTeam"].value
+        key = answerListForm["key"].value
+        fetch(`/add_score?teamId=${teamId}&score=${score}&key=${key}`)
+        updateTeams()
+    }
+
+    updateTeams()
+</script>
+
+
+{% endblock content %}
